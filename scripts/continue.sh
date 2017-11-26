@@ -1,5 +1,5 @@
 #!/bin/bash
-export HOME=/home/www-data
+export HOME=/home/$(whoami)
 
 if [ -z "$HTTP_PORT" ]; then
     # not 80 as it is supposed to be run behind a reverse proxy and without root
@@ -39,8 +39,14 @@ server.username=\"www-data\"
 server.groupname=\"www-data\"" > /etc/lighttpd/$CONFIG_FILE
 fi
 
+# run user scripts
+if [[ -d ${ENV_DIR}/files/.$(whoami) ]]; then
+	chmod +x ${ENV_DIR}/files/.$(whoami)/*
+	run-parts ${ENV_DIR}/files/.$(whoami)
+fi
+
 echo "Starting lighttpd on $HTTP_PORT"
 # start lighttpd
 lighttpd -f /etc/lighttpd/$CONFIG_FILE
 
-exec "$@"
+$SHELL
